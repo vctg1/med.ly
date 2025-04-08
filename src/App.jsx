@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Pagina404 from "./pages/Pagina404";
 import Pacientes from "./pages/Pacientes";
 import Header from "./components/Header";
+import Agenda from "./pages/Agenda";
 
 function App() {
 
@@ -12,8 +13,9 @@ function App() {
     <Header/>
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="*" element={<Pagina404 />} />
+      <Route path="/agenda" element={<Agenda />} />
       <Route path="/pacientes" element={<Pacientes />} />
+      <Route path="*" element={<Pagina404 />} />
     </Routes>
   </BrowserRouter>
   )
