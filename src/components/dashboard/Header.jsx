@@ -1,6 +1,6 @@
-import { Box, Button, ButtonGroup, Grid } from "@mui/material";
+import { Box, Button, ButtonGroup, Grid, Typography } from "@mui/material";
 import React from "react";
-import medImg from "../images/med-logo.png"
+import medImg from "../../images/med-logo.png"
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useLocation } from "react-router";
@@ -23,9 +23,11 @@ export default function Header(){
             <Button>
             <AccountBoxIcon color="info" />
             </Button>
+            <Typography component='a' href="/" style={{display:'flex'}}>
             <Button>
             <LogoutIcon color="error"/>
             </Button>
+            </Typography>
             </ButtonGroup>
             </Box>
         </Grid>

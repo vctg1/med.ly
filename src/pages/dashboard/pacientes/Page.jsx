@@ -1,7 +1,7 @@
-import { Box, Button, ButtonGroup, Grid, TextField } from "@mui/material";
 import React from "react";
+import { Box, Button, Grid, TextField } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
-import ListaPacientes from "../components/ListaPacientes";
+import ListaPacientes from "./ListaPacientes";
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
