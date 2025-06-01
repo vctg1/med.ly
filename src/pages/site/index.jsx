@@ -8,6 +8,7 @@ import Login from "./login/Page";
 import Register from "./register/Page";
 import Consulta from "./consulta/Page";
 import ExamesPage from "./exames/Page";
+import AgendarPage from "./agendar/Page";
 
 export default function Site() {
     return (
@@ -20,6 +21,7 @@ export default function Site() {
                         <Route path="/register" element={<Register />} />
                         <Route path="/consulta" element={<Consulta/>}/ >
                         <Route path="/exame" element={<ExamesPage/>}/ >
+                        <Route path="/agendar" element={<AgendarPage/>}/ >
 
                     </Routes>
             </Grid>

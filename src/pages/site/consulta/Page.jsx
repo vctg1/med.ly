@@ -256,7 +256,7 @@ export default function ConsultasPage() {
       <Typography variant="h4" gutterBottom>
         Consultas
       </Typography>
-      <Grid container display={'grid'}  gridTemplateColumns={'1fr 1fr 1fr'} gap={10}>
+      <Grid container display={{xs:'block', md:'grid'}}  gridTemplateColumns={'1fr 1fr 1fr'} gap={10}>
         {consultas.map((consulta) => (
           <Grid key={consulta.id}>
             <Card sx={{ height: "100%", display: "flex", flexDirection: "column", ":hover": { boxShadow: 5 }  }}>

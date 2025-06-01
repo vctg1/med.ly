@@ -188,11 +188,11 @@ export default function ExamesPage() {
   };
 
   return (
-    <Box p={4}>
+    <Box px={4}>
       <Typography variant="h4" gutterBottom>
         Exames
       </Typography>
-      <Grid container display={'grid'}  gridTemplateColumns={'1fr 1fr 1fr'} gap={10} >
+      <Grid container display={{xs:'block', md:'grid'}}  gridTemplateColumns={'1fr 1fr 1fr'} gap={10}>
         {exames.map((exame) => (
           <Grid key={exame.id}>
             <Card sx={{ display: "flex", flexDirection: "column", ":hover": { boxShadow: 5 } }}>
