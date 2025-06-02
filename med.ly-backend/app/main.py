@@ -34,8 +34,3 @@ app.include_router(ratings.router)
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API de Saúde"}
-
-# Para iniciar o servidor (adicione isto ao final do arquivo ou execute via terminal):
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
