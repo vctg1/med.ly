@@ -78,52 +78,34 @@ export default function Agenda() {
       <h1 className="text-2xl font-bold mb-4">Agenda</h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
+        <Box display={'flex'} justifyContent={'center'} >
 
-      {!isSignedIn ? (
-        <button
-          onClick={handleAuthClick}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Entrar com Google
-        </button>
-      ) : (
-        <>
-          <button
-            onClick={handleSignOutClick}
-            className="bg-red-500 text-white px-4 py-2 rounded mb-4"
-          >
-            Sair
-          </button>
-            <Box display={'flex'} justifyContent={'center'} >
+      <Calendar
+        onChange={setSelectedDate}
+        value={selectedDate}
+        tileContent={tileContent}
+        />
+        </Box>
 
-          <Calendar
-            onChange={setSelectedDate}
-            value={selectedDate}
-            tileContent={tileContent}
-            />
-            </Box>
-
-          <h2 className="text-xl font-semibold mt-6 mb-2">
-            Eventos do dia {selectedDate.toLocaleDateString()}
-          </h2>
-          <ul className="space-y-2">
-            {getEventsForDate(selectedDate).length === 0 ? (
-              <p>Nenhum evento.</p>
-            ) : (
-              getEventsForDate(selectedDate).map((event) => (
-                <li key={event.id} className="border p-3 rounded shadow">
-                  <strong>{event.summary}</strong>
-                  <p className="text-sm text-gray-600">
-                    {event.start.dateTime
-                      ? new Date(event.start.dateTime).toLocaleTimeString()
-                      : 'Dia inteiro'}
-                  </p>
-                </li>
-              ))
-            )}
-          </ul>
-        </>
-      )}
+      <h2 className="text-xl font-semibold mt-6 mb-2">
+        Eventos do dia {selectedDate.toLocaleDateString()}
+      </h2>
+      <ul className="space-y-2">
+        {getEventsForDate(selectedDate).length === 0 ? (
+          <p>Nenhum evento.</p>
+        ) : (
+          getEventsForDate(selectedDate).map((event) => (
+            <li key={event.id} className="border p-3 rounded shadow">
+              <strong>{event.summary}</strong>
+              <p className="text-sm text-gray-600">
+                {event.start.dateTime
+                  ? new Date(event.start.dateTime).toLocaleTimeString()
+                  : 'Dia inteiro'}
+              </p>
+            </li>
+          ))
+        )}
+      </ul>
     </div>
   );
 }

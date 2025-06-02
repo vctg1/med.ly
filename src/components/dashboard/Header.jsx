@@ -9,7 +9,7 @@ export default function Header(){
     const location = useLocation();
     const currentPath = location.pathname;
     return(
-        <Grid marginBottom="2rem" display={'flex'} justifyContent={'space-between'}>
+        <Grid display={'flex'} p={3} justifyContent={'space-between'}>
             <img src={medImg} height='80vh' />
             <Box display={'flex'} gap="1em" >
             <ButtonGroup >
