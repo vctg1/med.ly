@@ -10,7 +10,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/", response_model=schemas.Appointment, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.AppointmentBase, status_code=status.HTTP_201_CREATED)
 def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Depends(database.get_db)):
     # Verificar se o médico existe
     doctor = db.query(models.Doctor).filter(models.Doctor.id == appointment.doctor_id).first()
@@ -26,7 +26,7 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
     db_appointment = models.Appointment(
         patient_id=appointment.patient_id,
         doctor_id=appointment.doctor_id,
-        appointment_datetime=appointment.appointment_datetime
+        appointment_datetime=appointment.date_time
     )
     
     db.add(db_appointment)
@@ -34,19 +34,19 @@ def create_appointment(appointment: schemas.AppointmentCreate, db: Session = Dep
     db.refresh(db_appointment)
     return db_appointment
 
-@router.get("/", response_model=List[schemas.Appointment])
+@router.get("/", response_model=List[schemas.AppointmentBase])
 def read_appointments(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db)):
     appointments = db.query(models.Appointment).offset(skip).limit(limit).all()
     return appointments
 
-@router.get("/{appointment_id}", response_model=schemas.Appointment)
+@router.get("/{appointment_id}", response_model=schemas.AppointmentBase)
 def read_appointment(appointment_id: int, db: Session = Depends(database.get_db)):
     appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if appointment is None:
         raise HTTPException(status_code=404, detail="Consulta não encontrada")
     return appointment
 
-@router.put("/{appointment_id}", response_model=schemas.Appointment)
+@router.put("/{appointment_id}", response_model=schemas.AppointmentBase)
 def update_appointment(appointment_id: int, appointment: schemas.AppointmentCreate, db: Session = Depends(database.get_db)):
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if db_appointment is None:

@@ -1,71 +1,159 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 from datetime import date, datetime
 
-# Schemas para Patient
+# ============= AUTH SCHEMAS =============
+class UserLogin(BaseModel):
+    username: str
+    password: str
+    user_type: str  # "patient" ou "doctor"
+
+class PatientRegister(BaseModel):
+    username: str
+    password: str
+    full_name: str
+    sex: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    weight: Optional[float] = None
+    height: Optional[float] = None
+
+class DoctorRegister(BaseModel):
+    username: str
+    password: str
+    full_name: str
+    specialty: Optional[str] = None
+    crm_number: str
+    state_active: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_type: str
+    user_data: dict
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    user_type: Optional[str] = None
+
+# ============= PATIENT SCHEMAS =============
 class PatientBase(BaseModel):
     username: str
-    name: str
+    full_name: str
+    sex: Optional[str] = None
     date_of_birth: Optional[date] = None
-    gender: Optional[str] = None
     weight: Optional[float] = None
     height: Optional[float] = None
 
 class PatientCreate(PatientBase):
     password: str
 
-class Patient(PatientBase):
+class PatientUpdate(BaseModel):
+    full_name: Optional[str] = None
+    sex: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    weight: Optional[float] = None
+    height: Optional[float] = None
+
+class PatientResponse(PatientBase):
     id: int
-    # Não incluímos o campo profile_picture aqui porque não é serializado facilmente
-
+    current_score: Optional[float] = None
+    
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# Schemas para Doctor
+# ============= DOCTOR SCHEMAS =============
 class DoctorBase(BaseModel):
     username: str
-    name: str
-    specialty: str
-    crm: str
-    estado: str = ""
+    full_name: str
+    specialty: Optional[str] = None
+    crm_number: str
+    state_active: Optional[str] = None
 
 class DoctorCreate(DoctorBase):
     password: str
 
-class Doctor(DoctorBase):
+class DoctorUpdate(BaseModel):
+    full_name: Optional[str] = None
+    specialty: Optional[str] = None
+    state_active: Optional[str] = None
+    is_currently_active: Optional[bool] = None
+
+class DoctorResponse(DoctorBase):
     id: int
-    # Não incluímos o campo profile_picture aqui porque não é serializado facilmente
-
+    is_currently_active: bool
+    current_score: Optional[float] = None
+    
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# Schemas para Appointment
+# ============= APPOINTMENT SCHEMAS =============
 class AppointmentBase(BaseModel):
     patient_id: int
     doctor_id: int
-    appointment_datetime: datetime
+    date_time: datetime
+    status: Optional[str] = "scheduled"
 
 class AppointmentCreate(AppointmentBase):
     pass
 
-class Appointment(AppointmentBase):
+class AppointmentUpdate(BaseModel):
+    date_time: Optional[datetime] = None
+    status: Optional[str] = None
+
+class AppointmentResponse(AppointmentBase):
     id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# Schemas para Rating
-class RatingBase(BaseModel):
-    doctor_id: int
-    patient_id: int
-    rating: int = Field(..., ge=1, le=5)
-    review: Optional[str] = ""
+# ============= CLINIC SCHEMAS =============
+class ClinicBase(BaseModel):
+    full_legal_name: str
+    adress: Optional[str] = None
+    details: Optional[str] = None
 
-class RatingCreate(RatingBase):
+class ClinicCreate(ClinicBase):
     pass
 
-class Rating(RatingBase):
+class ClinicResponse(ClinicBase):
     id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+# ============= EXAM SCHEMAS =============
+class ExamBase(BaseModel):
+    patient_id: int
+    doctor_id: int
+    clinic_id: int
+    exam_type: str
+    scheduled_by_patient: Optional[bool] = False
+
+class ExamCreate(ExamBase):
+    pass
+
+class ExamResponse(ExamBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+# ============= REVIEW SCHEMAS =============
+class PatientReviewBase(BaseModel):
+    general_score: Optional[float] = None
+    appointment_score: Optional[float] = None
+    doctor_score: Optional[float] = None
+    clinic_score: Optional[float] = None
+    feedback: Optional[str] = None
+    id_patient: int
+    id_doctor: int
+    id_clinic: int
+
+class PatientReviewCreate(PatientReviewBase):
+    pass
+
+class PatientReviewResponse(PatientReviewBase):
+    id: int
+    
+    class Config:
+        from_attributes = True

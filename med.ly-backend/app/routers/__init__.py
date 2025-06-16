@@ -1,1 +1,1 @@
-from . import patients, doctors, appointments, ratings
+from . import patients, doctors, appointments, auth, reviews
