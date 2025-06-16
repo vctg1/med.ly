@@ -8,14 +8,15 @@ import { Link, useLocation } from "react-router";
 export default function Header(){
     const location = useLocation();
     const currentPath = location.pathname;
+    const url = '/dashboard'
     return(
         <Grid display={'flex'} p={3} justifyContent={'space-between'}>
             <img src={medImg} height='80vh' />
             <Box display={'flex'} gap="1em" >
             <ButtonGroup >
-            <Link style={{display:'flex'}} to='/'><Button variant={currentPath === '/' ? 'contained' : 'text'}>Home</Button></Link>
-            <Link style={{display:'flex'}} to='/agenda'><Button variant={currentPath === '/agenda' ? 'contained' : 'text'}>Agenda</Button></Link>
-            <Link style={{display:'flex'}} to='/pacientes'><Button variant={currentPath === '/pacientes' ? 'contained' : 'text'}>Pacientes</Button></Link>
+            <Link style={{display:'flex'}} to={`${url}/`}><Button variant={currentPath === `${url}/` ? 'contained' : 'text'}>Home</Button></Link>
+            <Link style={{display:'flex'}} to={`${url}/agenda`}><Button variant={currentPath === `${url}/agenda` ? 'contained' : 'text'}>Agenda</Button></Link>
+            <Link style={{display:'flex'}} to={`${url}/pacientes`}><Button variant={currentPath === `${url}/pacientes` ? 'contained' : 'text'}>Pacientes</Button></Link>
             </ButtonGroup>
             </Box>
             <Box display={'flex'} gap="1em" >

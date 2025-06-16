@@ -47,6 +47,7 @@ export default function Header() {
   const handleNavigation = (path) => {
     navigate(path);
   };
+  const url = "/dashboard-paciente";
 
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
@@ -57,29 +58,13 @@ export default function Header() {
         </Typography>
 
         {/* Navegação */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            color="inherit"
-            startIcon={<HomeIcon />}
-            onClick={() => handleNavigation('/')}
-          >
-            Início
-          </Button>
-          
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>          
           <Button
             color="inherit"
             startIcon={<CalendarIcon />}
-            onClick={() => handleNavigation('/agendamentos')}
+            onClick={() => handleNavigation(`${url}/agendamentos`)}
           >
             Agendamentos
-          </Button>
-          
-          <Button
-            color="inherit"
-            startIcon={<PersonIcon />}
-            onClick={() => handleNavigation('/perfil')}
-          >
-            Perfil
           </Button>
 
           {/* Notificações */}
@@ -107,7 +92,7 @@ export default function Header() {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={()=> {handleNavigation(`${url}/`); handleMenuClose()}}>
               <AccountIcon sx={{ mr: 1 }} />
               Meu Perfil
             </MenuItem>

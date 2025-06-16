@@ -256,8 +256,8 @@ export default function HomePage() {
       </Grid>
 
       {/* Informações Pessoais */}
-      <Grid item xs={12} md={6}>
-        <Card sx={{ height: '100%', boxShadow: 2 }}>
+      <Grid item sx={{ minWidth: {xs:'50px', md:'200px'} }}>
+        <Card sx={{ boxShadow: 2 }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={2}>
               <PersonIcon color="primary" sx={{ mr: 1 }} />
@@ -293,8 +293,8 @@ export default function HomePage() {
       </Grid>
 
       {/* Resumo de Agendamentos */}
-      <Grid item xs={12} md={3}>
-        <Card sx={{ height: '100%', boxShadow: 2 }}>
+      <Grid item sx={{ minWidth: {xs:'50px', md:'200px'} }}>
+        <Card sx={{ boxShadow: 2 }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={1}>
               <EventIcon color="primary" sx={{ mr: 1 }} />
@@ -312,8 +312,8 @@ export default function HomePage() {
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={3}>
-        <Card sx={{ height: '100%', boxShadow: 2 }}>
+      <Grid item sx={{ minWidth: {xs:'50px', md:'200px'} }}>
+        <Card sx={{ boxShadow: 2 }}>
           <CardContent>
             <Box display="flex" alignItems="center" mb={1}>
               <CalendarTodayIcon color="success" sx={{ mr: 1 }} />
@@ -332,9 +332,9 @@ export default function HomePage() {
       </Grid>
 
       {/* Notificações de Agendamentos */}
-      <Grid item xs={12}>
-        <Paper sx={{ p: 3, borderRadius: 2 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Grid item>
+        <Paper sx={{ p: 3, borderRadius: 2, minWidth: {xs:'50px', md:'200px'} }}>
+          <Box display="grid" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" fontWeight="bold">
               Notificações de Agendamentos
             </Typography>
@@ -420,122 +420,7 @@ export default function HomePage() {
         </Paper>
       </Grid>
 
-      {/* Meus Agendamentos */}
-      <Grid item xs={12}>
-        <Paper sx={{ p: 3, borderRadius: 2 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h5" fontWeight="bold">
-              Meus Agendamentos
-            </Typography>
-            
-            <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="rows-per-page-label">Mostrar</InputLabel>
-              <Select
-                labelId="rows-per-page-label"
-                id="rows-per-page"
-                value={rowsPerPage}
-                onChange={handleChangeRowsPerPage}
-                label="Mostrar"
-              >
-                <MenuItem value={3}>3 por página</MenuItem>
-                <MenuItem value={5}>5 por página</MenuItem>
-                <MenuItem value={10}>10 por página</MenuItem>
-                <MenuItem value={25}>25 por página</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-          
-          {agendamentosAtuaisEFuturos.length > 0 ? (
-            <>
-              <List>
-                {agendamentosPaginados.map((agendamento) => (
-                  <React.Fragment key={agendamento.id}>
-                    <ListItem
-                      secondaryAction={
-                        <IconButton 
-                          edge="end"
-                          onClick={(e) => handleMenuOpen(e, agendamento.id)}
-                        >
-                          <MoreVertIcon />
-                        </IconButton>
-                      }
-                      sx={{ 
-                        bgcolor: isAgendamentoHoje(agendamento.data) ? 'rgba(25, 118, 210, 0.05)' : 'transparent',
-                      }}
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ 
-                          bgcolor: agendamento.tipo === 'Consulta' 
-                            ? (isAgendamentoHoje(agendamento.data) ? 'primary.main' : 'primary.light')
-                            : (isAgendamentoHoje(agendamento.data) ? 'secondary.main' : 'secondary.light')
-                        }}>
-                          {agendamento.tipo === 'Consulta' ? <PersonIcon /> : <MedicalServicesIcon />}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography component="span" variant="subtitle1" fontWeight="bold">
-                              {agendamento.tipo} - {agendamento.especialidade}
-                            </Typography>
-                            {isAgendamentoHoje(agendamento.data) && (
-                              <Chip 
-                                label="Hoje" 
-                                color="primary" 
-                                size="small"
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <Box component="div">
-                            <Typography component="span" variant="body2" color="text.primary">
-                              Com {agendamento.medico}
-                            </Typography>
-                            <br />
-                            <Typography component="span" variant="body2">
-                              {(() => {
-                                const [year, month, day] = agendamento.data.split('-');
-                                const formattedDate = new Date(year, month - 1, day);
-                                return isAgendamentoHoje(agendamento.data) 
-                                  ? `Hoje às ${agendamento.horario}`
-                                  : `${formattedDate.toLocaleDateString('pt-BR')} às ${agendamento.horario}`;
-                              })()}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                      <Chip 
-                        label={agendamento.status} 
-                        color={agendamento.status === 'confirmado' ? 'success' : 'warning'} 
-                        size="small" 
-                      />
-                    </ListItem>
-                    <Divider variant="inset" component="li" />
-                  </React.Fragment>
-                ))}
-              </List>
-              
-              {/* Paginação */}
-              <Box display="flex" justifyContent="flex-end" mt={2}>
-                <TablePagination
-                  component="div"
-                  count={agendamentosAtuaisEFuturos.length}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  rowsPerPageOptions={[]}
-                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-                />
-              </Box>
-            </>
-          ) : (
-            <Alert severity="info">
-              Você não possui agendamentos para os próximos dias.
-            </Alert>
-          )}
-        </Paper>
-      </Grid>
+      
 
       {/* Menu de Opções para Agendamentos */}
       <Menu
