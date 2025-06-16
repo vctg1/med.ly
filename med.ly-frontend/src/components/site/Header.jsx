@@ -14,6 +14,10 @@ export default function Header() {
             path: null,
             subMenu: [
                 {
+                    name: 'Fazer Login',
+                    path: '/login',
+                },
+                {
                     name: 'Consultas',
                     path: '/consulta',
                 },

@@ -1,13 +1,13 @@
 import { Button, FormControl, Grid, TextField, Typography } from "@mui/material";
 import React from "react";
-import {createDoctor} from "../../../../api/doctors/crud"
+import { createDoctor } from "../../../../api/doctors/crud";
 import Alert from '@mui/material/Alert';
 
 export default function Register() {
     const user = {
         username: "",
         name: "",
-        email:"",
+        email: "",
         specialty: "",
         crm: "",
         estado: "",
@@ -18,26 +18,10 @@ export default function Register() {
         numero: "",
         complemento: "",
         bairro: "",
-    }
-    const handleSubmit = async(e: React.FormEvent) => {
-        e.preventDefault();
-        console.log(userPost);
-        const res = await createDoctor(userPost);
-        if (res?.detail){
-            alert(`Erro: ${res?.detail}`);
-        }
-        else{
-            alert("Cadastrado com sucesso!");
-            window.location.href = "/login";
-        }
-    }
-    const handleReset = () => {
-        setUserData(user);
-    }
-    const handleChange = (e:any) => {
-        setUserData({ ...userData, [e.target.name]: e.target.value });
-    }
+    };
+
     const [userData, setUserData] = React.useState(user);
+
     const userPost = {
         username: userData.username,
         name: userData.name,
@@ -45,14 +29,46 @@ export default function Register() {
         crm: userData.crm,
         estado: userData.estado,
         password: userData.password,
-    }
-    return(
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log(userPost);
+        const res = await createDoctor(userPost);
+        if (res?.detail) {
+            alert(`Erro: ${res?.detail}`);
+        } else {
+            alert("Cadastrado com sucesso!");
+            window.location.href = "/login";
+        }
+    };
+
+    const handleReset = () => {
+        setUserData(user);
+    };
+
+    const handleChange = (e) => {
+        setUserData({ ...userData, [e.target.name]: e.target.value });
+    };
+
+    return (
         <Grid>
-            <Typography variant="h4" component="h1" gutterBottom style={{textAlign:'center', marginTop:'2rem'}}>
+            <Typography variant="h4" component="h1" gutterBottom style={{ textAlign: 'center', marginTop: '2rem' }}>
                 Cadastro do profissional
             </Typography>
-            <form onSubmit={e=>handleSubmit(e)}>
-                <FormControl style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', width:'50%', alignItems:'center', gap:'2rem', justifySelf:'center'}} variant="outlined" sx={{ mb: 2 }}>
+            <form onSubmit={(e) => handleSubmit(e)}>
+                <FormControl 
+                    style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        width: '50%', 
+                        alignItems: 'center', 
+                        gap: '2rem', 
+                        justifySelf: 'center' 
+                    }} 
+                    variant="outlined" 
+                    sx={{ mb: 2 }}
+                >
                     <TextField
                         required
                         name="name"
@@ -159,15 +175,25 @@ export default function Register() {
                         value={userData?.bairro}
                         onChange={(e) => handleChange(e)}
                     />
-                    <Button variant="contained" color="primary" type="submit" style={{ gridColumn: 'span 2' }}>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        type="submit" 
+                        style={{ gridColumn: 'span 2' }}
+                    >
                         Cadastrar
                     </Button>
-                    <Button variant="outlined" color="secondary" type="reset" style={{ gridColumn: 'span 2' }} onClick={() => setUserData(user)}>
+                    <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        type="reset" 
+                        style={{ gridColumn: 'span 2' }} 
+                        onClick={() => setUserData(user)}
+                    >
                         Limpar
                     </Button>
                 </FormControl>
             </form>
-
         </Grid>
-    )
+    );
 }
