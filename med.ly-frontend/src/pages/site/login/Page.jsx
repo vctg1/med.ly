@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { 
   Box, 
   FormControl, 
@@ -19,16 +20,30 @@ import {
 import LoginIcon from '@mui/icons-material/Login';
 import PersonIcon from '@mui/icons-material/Person';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import { useAuth } from '../../../services/authContext';
 
 export default function Login() {
+    const navigate = useNavigate();
+    const { login, loading, isAuthenticated, isPatient, isDoctor } = useAuth();
     const [userData, setUserData] = useState({
         email: '',
         password: ''
     });
-    const [userType, setUserType] = useState('paciente'); // 'paciente' ou 'profissional'
+    const [userType, setUserType] = useState('patient');
     const [openSuccess, setOpenSuccess] = useState(false);
     const [openError, setOpenError] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    // Verificar se o usuário já está logado e redirecionar
+    useEffect(() => {
+        if (isAuthenticated) {
+            if (isPatient()) {
+                navigate('/dashboard-paciente', { replace: true });
+            } else if (isDoctor()) {
+                navigate('/dashboard', { replace: true });
+            }
+        }
+    }, [isAuthenticated, isPatient, isDoctor, navigate]);
 
     const handleUserTypeChange = (event, newUserType) => {
         if (newUserType !== null) {
@@ -36,55 +51,24 @@ export default function Login() {
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const { email, password } = userData;
         
         if (!email || !password) {
+            setErrorMessage('Por favor, preencha todos os campos!');
             setOpenError(true);
             return;
         }
-        
-        setLoading(true);
-        
-        // Simulando autenticação
-        setTimeout(() => {
-            // Dados mockados para demonstração
-            const mockUsers = {
-                paciente: {
-                    email: 'paciente@gmail.com',
-                    password: '123456',
-                    redirect: '/dashboard-paciente'
-                },
-                profissional: {
-                    email: 'medico@gmail.com',
-                    password: '123456',
-                    redirect: '/dashboard'
-                }
-            };
 
-            const currentUserMock = mockUsers[userType];
-            
-            if (email === currentUserMock.email && password === currentUserMock.password) {
-                // Salvar dados do usuário no localStorage
-                const userData = {
-                    id: userType === 'paciente' ? 1 : 2,
-                    nome: userType === 'paciente' ? 'João Silva' : 'Dr. Ana Santos',
-                    email: email,
-                    tipo: userType
-                };
-                
-                localStorage.setItem(`${userType}Logado`, JSON.stringify(userData));
-                
-                setOpenSuccess(true);
-                setTimeout(() => {
-                    window.location.href = currentUserMock.redirect;
-                }, 1000);
-            } else {
-                setOpenError(true);
-                setLoading(false);
-            }
-        }, 800);
+        try {
+            await login(email, password);
+            setOpenSuccess(true);
+            // O redirecionamento será feito automaticamente pelo useEffect quando isAuthenticated mudar
+        } catch (error) {
+            setErrorMessage(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
+            setOpenError(true);
+        }
     };
 
     const handleInputChange = (field) => (event) => {
@@ -99,10 +83,22 @@ export default function Login() {
         setOpenError(false);
     };
 
+    // Mostrar loading enquanto verifica autenticação
+    if (loading) {
+        return (
+            <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: '80vh' }}>
+                <CircularProgress size={60} />
+                <Typography variant="h6" sx={{ ml: 2 }}>
+                    Verificando autenticação...
+                </Typography>
+            </Grid>
+        );
+    }
+
     return (
         <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: '80vh' }}>
-            <Grid item sx={{ width:{ xs:'15rem', sm:"30rem"}}} >
-                <Paper elevation={6} sx={{ borderRadius: 3}}>
+            <Grid item sx={{ width: { xs: '90%', sm: "30rem" } }}>
+                <Paper elevation={6} sx={{ borderRadius: 3 }}>
                     <Box
                         sx={{
                             p: 4,
@@ -124,56 +120,6 @@ export default function Login() {
                             Faça login para acessar sua área
                         </Typography>
 
-                        {/* Toggle para tipo de usuário */}
-                        <Box mb={3}>
-                            <Typography variant="body2" color="text.secondary" mb={1} textAlign="center">
-                                Você é:
-                            </Typography>
-                            <ToggleButtonGroup
-                                value={userType}
-                                exclusive
-                                onChange={handleUserTypeChange}
-                                aria-label="tipo de usuário"
-                                fullWidth
-                                sx={{ width: '100%' }}
-                            >
-                                <ToggleButton 
-                                    value="paciente" 
-                                    aria-label="paciente"
-                                    sx={{ 
-                                        flex: 1,
-                                        '&.Mui-selected': {
-                                            bgcolor: 'primary.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                bgcolor: 'primary.dark',
-                                            }
-                                        }
-                                    }}
-                                >
-                                    <PersonIcon sx={{ mr: 1 }} />
-                                    Paciente
-                                </ToggleButton>
-                                <ToggleButton 
-                                    value="profissional" 
-                                    aria-label="profissional"
-                                    sx={{ 
-                                        flex: 1,
-                                        '&.Mui-selected': {
-                                            bgcolor: 'primary.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                bgcolor: 'primary.dark',
-                                            }
-                                        }
-                                    }}
-                                >
-                                    <LocalHospitalIcon sx={{ mr: 1 }} />
-                                    Profissional
-                                </ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
-
                         {/* Formulário de Login */}
                         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
                             <FormControl variant="outlined" fullWidth>
@@ -189,7 +135,7 @@ export default function Login() {
                                         required
                                         fullWidth
                                         disabled={loading}
-                                        placeholder={`Digite seu e-mail ${userType === 'paciente' ? 'de paciente' : 'profissional'}`}
+                                        placeholder={`Digite seu e-mail ${userType === 'patient' ? 'de paciente' : 'profissional'}`}
                                     />
                                     <TextField
                                         id="password"
@@ -216,7 +162,7 @@ export default function Login() {
                                     {loading ? (
                                         <CircularProgress size={24} color="inherit" />
                                     ) : (
-                                        `Entrar como ${userType === 'paciente' ? 'Paciente' : 'Profissional'}`
+                                        "Entrar"
                                     )}
                                 </Button>
 
@@ -312,10 +258,7 @@ export default function Login() {
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    {!userData.email || !userData.password 
-                        ? 'Por favor, preencha todos os campos!' 
-                        : 'E-mail ou senha incorretos!'
-                    }
+                    {errorMessage}
                 </Alert>
             </Snackbar>
         </Grid>

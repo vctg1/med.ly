@@ -17,37 +17,36 @@ import {
   Checkbox,
   Link,
   Avatar,
-  Menu,
+  CircularProgress,
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../services/authContext';
 
 export default function RegisterPatientPage() {
   const navigate = useNavigate();
+  const { registerPatient } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    nome: '',
+    full_name: '',
     email: '',
-    telefone: '',
-    dataNascimento: '',
+    phone: '',
+    date_of_birth: '',
     cpf: '',
     rg: '',
-    endereco: '',
-    cidade: '',
-    estado: '',
-    bairro: '',
-    numero: '',
-    complemento: '',
+    city: '',
+    state: '',
     cep: '',
-    sexo: '',
-    contatoEmergencia: '',
-    telefoneEmergencia: '',
-    convenio: '',
-    numeroConvenio: '',
-    senha: '',
+    sex: '',
+    emergency_contact_name: '',
+    emergency_phone: '',
+    health_insurance_name: '',
+    health_insurance_number: '',
+    password: '',
     confirmarSenha: '',
     aceitaTermos: false,
   });
@@ -60,11 +59,11 @@ export default function RegisterPatientPage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validações
-    if (formData.senha !== formData.confirmarSenha) {
+    if (formData.password !== formData.confirmarSenha) {
       setErrorMessage('As senhas não coincidem');
       setShowError(true);
       return;
@@ -76,20 +75,41 @@ export default function RegisterPatientPage() {
       return;
     }
 
-    if (formData.senha.length < 6) {
+    if (formData.password.length < 6) {
       setErrorMessage('A senha deve ter pelo menos 6 caracteres');
       setShowError(true);
       return;
     }
 
-    // Simular cadastro
-    console.log('Dados do paciente:', formData);
-    setShowSuccess(true);
-    
-    // Redirecionar após sucesso
-    setTimeout(() => {
-      navigate('/login-paciente');
-    }, 2000);
+    // Preparar dados para o endpoint
+    const patientData = {
+      full_name: formData.full_name,
+      date_of_birth: formData.date_of_birth,
+      cpf: formData.cpf,
+      rg: formData.rg,
+      sex: formData.sex,
+      email: formData.email,
+      phone: formData.phone,
+      cep: formData.cep,
+      city: formData.city,
+      state: formData.state,
+      emergency_phone: formData.emergency_phone,
+      emergency_contact_name: formData.emergency_contact_name,
+      health_insurance_name: formData.health_insurance_name,
+      health_insurance_number: formData.health_insurance_number,
+      password: formData.password
+    };
+
+    try {
+      setLoading(true);
+      await registerPatient(patientData);
+      setShowSuccess(true);
+    } catch (error) {
+      setErrorMessage(error.message || 'Erro ao criar conta. Tente novamente.');
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatCPF = (value) => {
@@ -117,7 +137,7 @@ export default function RegisterPatientPage() {
   };
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
           <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
@@ -135,37 +155,37 @@ export default function RegisterPatientPage() {
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container display="flex" justifyContent="flex-start" flexWrap={'wrap'} spacing={2}>
             {/* Dados Pessoais */}
-            
-            <Grid sx={{width:"100%"}}>
-                <Typography variant="h6" textAlign={"left"}>
-                    Dados Pessoais
-                </Typography>
+            <Grid sx={{ width: "100%" }}>
+              <Typography variant="h6" textAlign={"left"} gutterBottom>
+                Dados Pessoais
+              </Typography>
             </Grid>
-            <Grid sx={{width:"15rem"}}>
+
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Nome Completo"
-                name="nome"
-                value={formData.nome}
+                name="full_name"
+                value={formData.full_name}
                 onChange={handleChange}
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Data de Nascimento"
-                name="dataNascimento"
+                name="date_of_birth"
                 type="date"
-                value={formData.dataNascimento}
+                value={formData.date_of_birth}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
@@ -180,7 +200,7 @@ export default function RegisterPatientPage() {
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
@@ -191,25 +211,24 @@ export default function RegisterPatientPage() {
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
-              <FormControl fullWidth required>
-                <TextField 
+            <Grid sx={{ width: "15rem" }}>
+              <TextField
                 fullWidth
-                    select
-                    label="Sexo"
-                    placeholder='Selecione o Sexo'
-                    variant="outlined"
-                    name="sexo"
-                    value={formData.sexo}
-                    onChange={handleChange}
-                >
-                    <MenuItem value="masculino">Masculino</MenuItem>
-                    <MenuItem value="feminino">Feminino</MenuItem>
-                    <MenuItem value="outro">Outro</MenuItem>
-                </TextField>
-              </FormControl>
+                select
+                label="Sexo"
+                name="sex"
+                value={formData.sex}
+                onChange={handleChange}
+                required
+              >
+                <MenuItem value="">Selecione</MenuItem>
+                <MenuItem value="M">Masculino</MenuItem>
+                <MenuItem value="F">Feminino</MenuItem>
+                <MenuItem value="O">Outro</MenuItem>
+              </TextField>
             </Grid>
-            <Grid sx={{width:"15rem"}}>
+
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
@@ -221,22 +240,22 @@ export default function RegisterPatientPage() {
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Telefone"
-                name="telefone"
-                value={formData.telefone}
+                name="phone"
+                value={formData.phone}
                 onChange={(e) => {
                   const formatted = formatPhone(e.target.value);
-                  setFormData(prev => ({ ...prev, telefone: formatted }));
+                  setFormData(prev => ({ ...prev, phone: formatted }));
                 }}
                 inputProps={{ maxLength: 15 }}
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
@@ -251,140 +270,109 @@ export default function RegisterPatientPage() {
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Cidade"
-                name="cidade"
-                value={formData.cidade}
+                name="city"
+                value={formData.city}
                 onChange={handleChange}
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Estado"
-                name="estado"
-                value={formData.estado}
+                name="state"
+                value={formData.state}
                 onChange={handleChange}
-              />
-            </Grid>
-            <Grid sx={{width:"15rem"}}>
-              <TextField
-                fullWidth
-                label="Bairro"
-                name="bairro"
-                value={formData.bairro}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid sx={{width:"15rem"}}>
-              <TextField
-                fullWidth
-                label="Endereço"
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid sx={{width:"15rem"}}>
-              <TextField
-                fullWidth
-                label="Número"
-                name="numero"
-                value={formData.numero}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid sx={{width:"15rem"}}>
-              <TextField
-                fullWidth
-                label="Complemento"
-                name="complemento"
-                value={formData.complemento}
-                onChange={handleChange}
+                inputProps={{ maxLength: 2 }}
               />
             </Grid>
 
             {/* Contato de Emergência */}
-            <Grid sx={{width:"100%"}}>
-                <Typography variant="h6" textAlign={"left"}>
-                    Contato de Emergência
-                </Typography>
+            <Grid sx={{ width: "100%" }}>
+              <Typography variant="h6" textAlign={"left"} gutterBottom sx={{ mt: 3 }}>
+                Contato de Emergência
+              </Typography>
             </Grid>
-            <Grid sx={{width:"15rem"}}>
-              <TextField
-                fullWidth
-                label="Telefone de Emergência"
-                name="telefoneEmergencia"
-                value={formData.telefoneEmergencia}
-                onChange={(e) => {
-                  const formatted = formatPhone(e.target.value);
-                  setFormData(prev => ({ ...prev, telefoneEmergencia: formatted }));
-                }}
-                inputProps={{ maxLength: 15 }}
-              />
-            </Grid>
-            <Grid sx={{width:"15rem"}}>
+
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 fullWidth
                 label="Nome do Contato"
-                name="contatoEmergencia"
-                value={formData.contatoEmergencia}
+                name="emergency_contact_name"
+                value={formData.emergency_contact_name}
                 onChange={handleChange}
               />
             </Grid>
 
-            {/* Convênio */}
-            <Grid sx={{width:"100%"}}>
-                <Typography variant="h6" textAlign={"left"}>
-                    Convênio Médico
-                </Typography>
+            <Grid sx={{ width: "15rem" }}>
+              <TextField
+                fullWidth
+                label="Telefone de Emergência"
+                name="emergency_phone"
+                value={formData.emergency_phone}
+                onChange={(e) => {
+                  const formatted = formatPhone(e.target.value);
+                  setFormData(prev => ({ ...prev, emergency_phone: formatted }));
+                }}
+                inputProps={{ maxLength: 15 }}
+              />
             </Grid>
-            <Grid sx={{width:"15rem"}}>
+
+            {/* Convênio */}
+            <Grid sx={{ width: "100%" }}>
+              <Typography variant="h6" textAlign={"left"} gutterBottom sx={{ mt: 3 }}>
+                Convênio Médico
+              </Typography>
+            </Grid>
+
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 fullWidth
                 label="Convênio Médico"
-                name="convenio"
-                value={formData.convenio}
+                name="health_insurance_name"
+                value={formData.health_insurance_name}
                 onChange={handleChange}
                 placeholder="Ex: Unimed, Bradesco Saúde, etc."
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 fullWidth
                 label="Número do Convênio"
-                name="numeroConvenio"
-                value={formData.numeroConvenio}
+                name="health_insurance_number"
+                value={formData.health_insurance_number}
                 onChange={handleChange}
               />
             </Grid>
 
             {/* Senha */}
-            <Grid sx={{width:"100%"}}>
-                <Typography variant="h6" textAlign={"left"}>
-                    Acesso à Conta
-                </Typography>
+            <Grid sx={{ width: "100%" }}>
+              <Typography variant="h6" textAlign={"left"} gutterBottom sx={{ mt: 3 }}>
+                Acesso à Conta
+              </Typography>
             </Grid>
-            <Grid sx={{width:"15rem"}}>
+
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
                 label="Senha"
-                name="senha"
+                name="password"
                 type="password"
-                value={formData.senha}
+                value={formData.password}
                 onChange={handleChange}
                 helperText="Mínimo 6 caracteres"
               />
             </Grid>
 
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "15rem" }}>
               <TextField
                 required
                 fullWidth
@@ -397,7 +385,7 @@ export default function RegisterPatientPage() {
             </Grid>
 
             {/* Termos */}
-            <Grid sx={{width:"15rem"}}>
+            <Grid sx={{ width: "100%" }}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -423,12 +411,13 @@ export default function RegisterPatientPage() {
             </Grid>
 
             {/* Botões */}
-            <Grid sx={{width:"100%"}} display="grid" justifyContent="center">
+            <Grid sx={{ width: "100%" }} display="grid" justifyContent="center">
               <Box display="flex" gap={2} justifyContent="center" mt={3}>
                 <Button
                   variant="outlined"
                   size="large"
                   onClick={() => navigate('/')}
+                  disabled={loading}
                 >
                   Cancelar
                 </Button>
@@ -436,14 +425,15 @@ export default function RegisterPatientPage() {
                   type="submit"
                   variant="contained"
                   size="large"
-                  disabled={!formData.aceitaTermos}
+                  disabled={!formData.aceitaTermos || loading}
+                  startIcon={loading && <CircularProgress size={20} />}
                 >
-                  Criar Conta
+                  {loading ? 'Criando Conta...' : 'Criar Conta'}
                 </Button>
               </Box>
             </Grid>
 
-            <Grid sx={{width:"100%"}} >
+            <Grid sx={{ width: "100%" }}>
               <Typography variant="body2" textAlign="center" mt={2}>
                 Já possui uma conta?{' '}
                 <Link href="/login" color="primary">
@@ -463,7 +453,7 @@ export default function RegisterPatientPage() {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="success" sx={{ width: '100%' }}>
-          Cadastro realizado com sucesso! Redirecionando para o login...
+          Cadastro realizado com sucesso! Redirecionando...
         </Alert>
       </Snackbar>
 

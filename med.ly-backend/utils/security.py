@@ -40,17 +40,17 @@ def verify_token(token: str) -> dict:
     """Verifica e decodifica o token JWT"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        full_name: str = payload.get("sub")
         user_type: str = payload.get("user_type")
         
-        if username is None or user_type is None:
+        if full_name is None or user_type is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token inválido",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        return {"username": username, "user_type": user_type}
+        return {"full_name": full_name, "user_type": user_type}
     
     except JWTError:
         raise HTTPException(

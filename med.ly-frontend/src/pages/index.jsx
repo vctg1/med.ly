@@ -5,19 +5,17 @@ import Site from "./site";
 
 export default function Pages() {
     return (
-        <BrowserRouter basename={"/"}>
-            <Routes>
-                {/* Rotas do Site */}
-                <Route path="/*" element={<Site />} />
-                
-                {/* Rotas do Dashboard do Médico */}
-                <Route path="/dashboard/*" element={<Dashboard />} />
-                
-                {/* Rotas do Dashboard do Paciente */}
-                <Route path="/dashboard-paciente/*" element={<DashboardPaciente />} />
-                {/* Rota 404 */}
-                <Route path="*" element={<div>404 - Página não encontrada</div>} />
-            </Routes>
-        </BrowserRouter>
+        <Routes>
+            {/* Rotas do Site */}
+            <Route path="/*" element={<Site />} />
+            
+            {/* Rotas do Dashboard do Médico */}
+            <Route path="/dashboard*" element={<Dashboard />} />
+            
+            {/* Rotas do Dashboard do Paciente */}
+            <Route path="/dashboard-paciente*" element={<DashboardPaciente />} />
+            {/* Rota 404 */}
+            <Route path="*" element={<div>404 - Página não encontrada</div>} />
+        </Routes>
     )
 }

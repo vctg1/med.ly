@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 import uvicorn
 from .database import engine, Base
-from .routers import patients, doctors, appointments, auth, reviews
+from .routers import patients, doctors, appointments, availability, auth, exams
 
 # Cria as tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
@@ -11,7 +12,12 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Healthcare API",
     description="API para gerenciamento de consultas médicas",
-    version="0.1.0"
+    version="0.1.0",
+    swagger_ui_parameters={
+        "defaultModelsExpandDepth": -1,
+        "docExpansion": "none",
+        "persistAuthorization": True,  # Mantém o token após refresh
+    }
 )
 
 # Configuração do CORS
@@ -23,17 +29,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Token
+security_scheme = HTTPBearer()
+
 # Inclusão dos routers
 app.include_router(patients.router, tags=["patients"])
 app.include_router(doctors.router, tags=["doctors"])
 app.include_router(appointments.router, tags=["appointments"])
-app.include_router(reviews.router, tags=["ratings"])
+app.include_router(availability.router, tags=["availability"])
+# app.include_router(reviews.router, tags=["ratings"])
 app.include_router(auth.router, tags=["auth"])
+app.include_router(exams.router, tags=["exams"])
 
 # Rota raiz
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API de Saúde"}
-
-if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

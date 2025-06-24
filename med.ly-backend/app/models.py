@@ -1,93 +1,95 @@
-# models.py
-from sqlalchemy import Column, Integer, String, Boolean, Float, Date, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, Date, DateTime, ForeignKey, Time
 from sqlalchemy.orm import relationship
-from .database import Base  # importa o Base da conexão
+from .database import Base
 
 class Patient(Base):
     __tablename__ = 'patients'
     
     id = Column(Integer, primary_key=True)
-    username = Column(String, nullable=False)
-    password_hash = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
+    date_of_birth = Column(Date, nullable=False)
+    cpf = Column(String, nullable=False, unique=True)
+    rg = Column(String, nullable=False)
     sex = Column(String)
-    date_of_birth = Column(Date)
-    weight = Column(Float)
-    height = Column(Float)
-    current_score = Column(Float)
+    email = Column(String, nullable=False, unique=True)
+    phone = Column(String, nullable=False)
+    cep = Column(String, nullable=False)
+    city = Column(String, nullable=False)
+    state = Column(String, nullable=False)
+    emergency_phone = Column(String)
+    emergency_contact_name = Column(String)
+    health_insurance_name = Column(String)
+    health_insurance_number = Column(String)
+    password_hash = Column(String, nullable=False)
+    current_score = Column(Float, default=0.0)
 
-    appointments = relationship("Appointment", back_populates="patient")
-    exams = relationship("Exam", back_populates="patient")
-    reviews = relationship("PatientReview", back_populates="patient")
+    appointments = relationship("Appointment", back_populates="patient", cascade="all, delete-orphan")
 
 class Doctor(Base):
     __tablename__ = 'doctors'
     
     id = Column(Integer, primary_key=True)
-    username = Column(String, nullable=False)
+    full_name = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
+    crm_number = Column(String, nullable=False, unique=True)
+    specialty = Column(String, nullable=False)
+    state = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
-    full_name = Column(String, nullable=False)
-    specialty = Column(String)
-    crm_number = Column(String, unique=True)
-    state_active = Column(String)
+    city = Column(String, nullable=False)
+    cep = Column(String, nullable=False)
+    number = Column(String, nullable=False)
+    complement = Column(String)
+    neighborhood = Column(String, nullable=False)
     is_currently_active = Column(Boolean, default=True)
-    current_score = Column(Float)
+    current_score = Column(Float, default=0.0)
 
-    appointments = relationship("Appointment", back_populates="doctor")
-    exams = relationship("Exam", back_populates="doctor")
-    reviews = relationship("PatientReview", back_populates="doctor")
-
-class Clinic(Base):
-    __tablename__ = 'clinics'
-
-    id = Column(Integer, primary_key=True)
-    full_legal_name = Column(String, nullable=False)
-    adress = Column(String)
-    details = Column(String)
-
-    exams = relationship("Exam", back_populates="clinic")
-    reviews = relationship("PatientReview", back_populates="clinic")
-
-class Appointment(Base):
-    __tablename__ = 'appointments'
-    
-    id = Column(Integer, primary_key=True)
-    patient_id = Column(Integer, ForeignKey('patients.id'))
-    doctor_id = Column(Integer, ForeignKey('doctors.id'))
-    date_time = Column(DateTime)
-    status = Column(String, default="scheduled")
-
-    patient = relationship("Patient", back_populates="appointments")
-    doctor = relationship("Doctor", back_populates="appointments")
+    appointments = relationship("Appointment", back_populates="doctor", cascade="all, delete-orphan")
+    availability_slots = relationship("DoctorAvailabilitySlot", back_populates="doctor", cascade="all, delete-orphan")
 
 class Exam(Base):
     __tablename__ = 'exams'
 
     id = Column(Integer, primary_key=True)
-    patient_id = Column(Integer, ForeignKey('patients.id'))
-    doctor_id = Column(Integer, ForeignKey('doctors.id'))
-    clinic_id = Column(Integer, ForeignKey('clinics.id'))
+    name = Column(String, nullable=False)
     exam_type = Column(String, nullable=False)
-    scheduled_by_patient = Column(Boolean, default=False)
+    duration_minutes = Column(Integer, nullable=False, default=30)
+    description = Column(String)
+    specialty = Column(String, nullable=False)
+    image_url = Column(String)
 
-    patient = relationship("Patient", back_populates="exams")
-    doctor = relationship("Doctor", back_populates="exams")
-    clinic = relationship("Clinic", back_populates="exams")
+    doctor_availability_slots = relationship("DoctorAvailabilitySlot", back_populates="exam", cascade="all, delete-orphan")
+    appointments = relationship("Appointment", back_populates="exam", cascade="all, delete-orphan")
 
-class PatientReview(Base):
-    __tablename__ = 'patient_reviews'
-
+class DoctorAvailabilitySlot(Base):
+    __tablename__ = 'doctor_availability_slots'
+    
     id = Column(Integer, primary_key=True)
-    general_score = Column(Float)
-    appointment_score = Column(Float)
-    doctor_score = Column(Float)
-    clinic_score = Column(Float)
-    feedback = Column(String(500))
+    doctor_id = Column(Integer, ForeignKey('doctors.id', ondelete='CASCADE'), nullable=False)
+    exam_id = Column(Integer, ForeignKey('exams.id', ondelete='CASCADE'), nullable=False)
+    date = Column(Date, nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    is_available = Column(Boolean, default=True)
+    created_at = Column(DateTime, nullable=False)
 
-    id_patient = Column(Integer, ForeignKey('patients.id'))
-    id_doctor = Column(Integer, ForeignKey('doctors.id'))
-    id_clinic = Column(Integer, ForeignKey('clinics.id'))
+    doctor = relationship("Doctor", back_populates="availability_slots")
+    exam = relationship("Exam", back_populates="doctor_availability_slots")
+    appointment = relationship("Appointment", back_populates="availability_slot", uselist=False, cascade="all, delete-orphan")
 
-    patient = relationship("Patient", back_populates="reviews")
-    doctor = relationship("Doctor", back_populates="reviews")
-    clinic = relationship("Clinic", back_populates="reviews")
+class Appointment(Base):
+    __tablename__ = 'appointments'
+    
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey('patients.id', ondelete='CASCADE'), nullable=False)
+    doctor_id = Column(Integer, ForeignKey('doctors.id', ondelete='CASCADE'), nullable=False)
+    exam_id = Column(Integer, ForeignKey('exams.id', ondelete='CASCADE'), nullable=False)
+    availability_slot_id = Column(Integer, ForeignKey('doctor_availability_slots.id', ondelete='CASCADE'), nullable=False)
+    date_time = Column(DateTime, nullable=False)
+    status = Column(String, default="scheduled")
+    notes = Column(String)
+    created_at = Column(DateTime, nullable=False)
+    
+    patient = relationship("Patient", back_populates="appointments")
+    doctor = relationship("Doctor", back_populates="appointments")
+    exam = relationship("Exam", back_populates="appointments")
+    availability_slot = relationship("DoctorAvailabilitySlot", back_populates="appointment")

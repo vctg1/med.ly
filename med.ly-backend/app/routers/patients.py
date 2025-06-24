@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-import bcrypt
 
 from .. import models, schemas, database
+from .auth import get_current_patient, get_current_user
 
 router = APIRouter(
     prefix="/patients",
@@ -11,74 +11,58 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-# Função para criar hash de senha
-def get_password_hash(password: str) -> str:
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password.encode(), salt)
-    return hashed_password.decode()
+@router.get("/me", response_model=schemas.PatientResponse)
+def get_my_profile(current_patient: models.Patient = Depends(get_current_patient)):
+    """Paciente visualiza seu próprio perfil"""
+    return current_patient
 
-# Função para verificar senha
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
-
-@router.post("/", response_model=schemas.PatientBase, status_code=status.HTTP_201_CREATED)
-def create_patient(patient: schemas.PatientCreate, db: Session = Depends(database.get_db)):
-    # Verificar se o usuário já existe
-    db_patient = db.query(models.Patient).filter(models.Patient.username == patient.username).first()
-    if db_patient:
-        raise HTTPException(status_code=400, detail="Username já está em uso")
+@router.put("/me", response_model=schemas.PatientResponse)
+def update_my_profile(
+    patient_update: schemas.PatientUpdate, 
+    db: Session = Depends(database.get_db),
+    current_patient: models.Patient = Depends(get_current_patient)
+):
+    """Paciente atualiza seu próprio perfil"""
     
-    # Criar hash da senha
-    hashed_password = get_password_hash(patient.password)
+    # Atualizar apenas campos fornecidos
+    update_data = patient_update.dict(exclude_unset=True)
     
-    # Criar novo paciente
-    db_patient = models.Patient(
-        username=patient.username,
-        name=patient.full_name,
-        password=hashed_password,
-        date_of_birth=patient.date_of_birth,
-        gender=patient.sex,
-        weight=patient.weight,
-        height=patient.height
-    )
+    for field, value in update_data.items():
+        setattr(current_patient, field, value)
     
-    db.add(db_patient)
     db.commit()
-    db.refresh(db_patient)
-    return db_patient
+    db.refresh(current_patient)
+    return current_patient
 
-@router.get("/", response_model=List[schemas.PatientBase])
-def read_patients(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db)):
-    patients = db.query(models.Patient).offset(skip).limit(limit).all()
-    return patients
-
-@router.get("/{patient_id}", response_model=schemas.PatientBase)
-def read_patient(patient_id: int, db: Session = Depends(database.get_db)):
+@router.get("/{patient_id}", response_model=schemas.PatientResponse)
+def get_patient(
+    patient_id: int, 
+    db: Session = Depends(database.get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Obter dados de um paciente específico (requer autenticação)"""
+    
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
-    if patient is None:
+    if not patient:
         raise HTTPException(status_code=404, detail="Paciente não encontrado")
+    
+    # Paciente só pode ver seus próprios dados, médicos podem ver qualquer paciente
+    user_type = current_user["user_type"]
+    if user_type == "patient" and current_user["user"].id != patient_id:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você só pode visualizar seu próprio perfil"
+        )
+    
     return patient
 
-@router.put("/{patient_id}", response_model=schemas.PatientBase)
-def update_patient(patient_id: int, patient: schemas.PatientBase, db: Session = Depends(database.get_db)):
-    db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
-    if db_patient is None:
-        raise HTTPException(status_code=404, detail="Paciente não encontrado")
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_my_account(
+    db: Session = Depends(database.get_db),
+    current_patient: models.Patient = Depends(get_current_patient)
+):
+    """Paciente deleta sua própria conta"""
     
-    # Atualizar campos do paciente
-    for key, value in patient.dict().items():
-        setattr(db_patient, key, value)
-    
-    db.commit()
-    db.refresh(db_patient)
-    return db_patient
-
-@router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_patient(patient_id: int, db: Session = Depends(database.get_db)):
-    db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
-    if db_patient is None:
-        raise HTTPException(status_code=404, detail="Paciente não encontrado")
-    
-    db.delete(db_patient)
+    db.delete(current_patient)
     db.commit()
     return None

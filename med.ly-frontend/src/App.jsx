@@ -1,11 +1,15 @@
-import './App.css'
-import Pages from './pages'
+import { BrowserRouter } from 'react-router';
+import { AuthProvider } from './services/authContext';
+import Pages from './pages';
 
 function App() {
-
   return (
-    <Pages />
-    )
+    <BrowserRouter>
+      <AuthProvider>
+        <Pages />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

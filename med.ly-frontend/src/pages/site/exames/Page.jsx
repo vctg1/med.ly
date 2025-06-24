@@ -24,50 +24,50 @@ import { createAppointment } from "../../../../api/appointments";
 import { useAuth } from '../../../services/authContext';
 import { useNavigate } from "react-router";
 
-export default function ConsultasPage() {
+export default function ExamesPage() {
   const { isAuthenticated } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedConsulta, setSelectedConsulta] = useState(null);
   const [selectedMedico, setSelectedMedico] = useState(null);
   const [selectedHorario, setSelectedHorario] = useState("");
   const [notes, setNotes] = useState("");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [consultas, setConsultas] = useState([]);
+  const [exames, setExames] = useState([]);
+  const [selectedExame, setSelectedExame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Carregar consultas da API
+  // Carregar exames da API
   useEffect(() => {
-    const loadConsultas = async () => {
+    const loadExames = async () => {
       try {
         setLoading(true);
         const data = await getExamsAvailable();
-        // Filtrar apenas consultas (exam_type === "consulta")
-        const consultasFiltradas = data.filter(item => 
-          item.exam_type && item.exam_type.toLowerCase() === 'consulta'
+        // Filtrar apenas exames (exam_type !== "consulta")
+        const examesFiltrados = data.filter(item => 
+          item.exam_type && item.exam_type.toLowerCase() !== 'consulta'
         );
-        setConsultas(consultasFiltradas);
+        setExames(examesFiltrados);
       } catch (error) {
-        console.error('Erro ao carregar consultas:', error);
-        setError('Erro ao carregar consultas. Tente novamente.');
+        console.error('Erro ao carregar exames:', error);
+        setError('Erro ao carregar exames. Tente novamente.');
       } finally {
         setLoading(false);
       }
     };
-    
-    loadConsultas();
+
+    loadExames();
   }, []);
 
-  const handleOpenDialog = (consulta) => {
+  const handleOpenDialog = (exame) => {
     // Verificar se o usuário está logado usando AuthContext
     if (!isAuthenticated) {
-      setError('Você precisa estar logado para agendar uma consulta. Faça login ou cadastre-se.');
+      setError('Você precisa estar logado para agendar um exame. Faça login ou cadastre-se.');
       return;
     }
 
-    setSelectedConsulta(consulta);
+    setSelectedExame(exame);
     setSelectedMedico(null);
     setSelectedHorario("");
     setNotes("");
@@ -82,9 +82,14 @@ export default function ConsultasPage() {
   };
 
   const handleMedicoChange = (event) => {
-    const medicoSelecionado = selectedConsulta?.doctors_available.find(
+    const medicoSelecionado = selectedExame?.doctors_available.find(
       (m) => m.doctor_name === event.target.value
-    );
+    ) || null;
+
+    if (!medicoSelecionado) {
+      setError('Médico não encontrado. Por favor, selecione novamente.');
+      return;
+    }
     setSelectedMedico(medicoSelecionado);
     setSelectedHorario("");
   };
@@ -112,13 +117,12 @@ export default function ConsultasPage() {
       setNotes("");
     } catch (error) {
       console.error('Erro ao criar agendamento:', error);
-      setError(error.message || 'Erro ao agendar consulta. Tente novamente.');
+      setError(error.message || 'Erro ao agendar exame. Tente novamente.');
     } finally {
       setSubmitting(false);
       navigate('/login');
     }
   };
-
   // Função para formatar data
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -135,28 +139,23 @@ export default function ConsultasPage() {
   }
 
   // Função para obter imagem (usar image_url da API ou fallback)
-  const getConsultaImage = (consulta) => {
-    if (consulta.image_url) {
-      return consulta.image_url;
+  const getExamImage = (exame) => {
+    if (exame.image_url) {
+      return exame.image_url;
     }
     
-    // Fallback baseado na especialidade dos médicos disponíveis
+    // Fallback baseado no tipo de exame
     const imageMap = {
-      'cardiologia': 'https://brailecardio.com.br/wp-content/uploads/2019/03/SMT4uK8.jpg',
-      'dermatologia': 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=400&q=80',
-      'pediatria': 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-      'ortopedia': 'https://assets-sitesdigitais.dasa.com.br/strapi/especialid_696c8b10a0/especialid_696c8b10a0.png',
-      'ginecologia': 'https://drapatriciavarella.com.br/wp-content/uploads/2021/04/O-que-falar-em-uma-consulta-com-ginecologista-min.jpg',
-      'oftalmologia': 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=400&q=80',
-      'neurologia': 'https://www.dorflex.com.br/dam/jcr:87c4d230-2e52-469a-b52b-204fc219460e/consulta_com_neurologista.webp',
+      'radiologia': 'https://images.unsplash.com/photo-1513224502586-d1e602410265?auto=format&fit=crop&w=400&q=80',
+      'laboratorio': 'https://lirp.cdn-website.com/57372278/dms3rep/multi/opt/blog047-640w.jpg',
+      'ultrassonografia': 'https://hubconteudo.dasa.com.br/wp-content/uploads/2023/06/ultrassom-abdome-total.jpg',
+      'endoscopia': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+      'cardiologia': 'https://hubconteudo.dasa.com.br/wp-content/uploads/2023/06/ultrassom-abdome-total.jpg',
       'default': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=400&q=80'
     };
     
-    // Pegar a primeira especialidade se houver médicos disponíveis
-    const firstSpecialty = consulta.specialty?.toLowerCase() || 
-                          consulta.doctors_available?.[0]?.specialty?.toLowerCase() || 
-                          'default';
-    return imageMap[firstSpecialty] || imageMap['default'];
+    const key = exame.exam_type?.toLowerCase() || exame.specialty?.toLowerCase() || 'default';
+    return imageMap[key] || imageMap['default'];
   };
 
   if (loading) {
@@ -168,52 +167,50 @@ export default function ConsultasPage() {
   }
 
   return (
-    <Box p={4}>
+    <Box px={4}>
       <Typography variant="h4" gutterBottom>
-        Consultas
+        Exames
       </Typography>
       
-      {consultas.length === 0 ? (
+      {exames.length === 0 ? (
         <Alert severity="info" sx={{ mt: 2 }}>
-          Nenhuma consulta disponível no momento.
+          Nenhum exame disponível no momento.
         </Alert>
       ) : (
         <Grid container display={{xs:'block', md:'grid'}} gridTemplateColumns={'1fr 1fr 1fr'} gap={10}>
-          {consultas.map((consulta) => (
-            <Grid key={consulta.id}>
-              <Card sx={{ height: "100%", display: "flex", flexDirection: "column", ":hover": { boxShadow: 5 } }}>
+          {exames.map((exame) => (
+            <Grid key={exame.id}>
+              <Card sx={{ display: "flex", flexDirection: "column", ":hover": { boxShadow: 5 } }}>
                 <CardMedia
                   component="img"
                   height="200"
-                  image={getConsultaImage(consulta)}
-                  alt={consulta.name}
+                  image={getExamImage(exame)}
+                  alt={exame.name}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h6" component="div">
-                    {consulta.name}
+                    {exame.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {consulta.description}
+                    {exame.description}
                   </Typography>
-                  {consulta.specialty && (
-                    <Typography variant="body2" color="primary">
-                      Especialidade: {consulta.specialty}
+                  <Typography variant="body2" color="primary">
+                    Tipo: {exame.exam_type}
+                  </Typography>
+                  {exame.specialty && (
+                    <Typography variant="body2" color="text.secondary">
+                      Especialidade: {exame.specialty}
                     </Typography>
                   )}
                   <Typography variant="body2" color="text.secondary">
-                    Duração: {consulta.duration_minutes} minutos
+                    Duração: {exame.duration_minutes} minutos
                   </Typography>
-                  {consulta.doctors_available?.length > 0 && (
-                    <Typography variant="body2" color="text.secondary">
-                      Médicos: {[...new Set(consulta.doctors_available.map(d => d.specialty))].join(', ')}
-                    </Typography>
-                  )}
                 </CardContent>
                 <Box p={2} pt={0}>
                   <Button
                     fullWidth
                     variant="outlined"
-                    onClick={() => handleOpenDialog(consulta)}
+                    onClick={() => handleOpenDialog(exame)}
                   >
                     Agendar
                   </Button>
@@ -225,17 +222,17 @@ export default function ConsultasPage() {
       )}
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedConsulta?.name}</DialogTitle>
+        <DialogTitle>{selectedExame?.name}</DialogTitle>
         <DialogContent>
           <Typography variant="subtitle1" gutterBottom>
-            {selectedConsulta?.description}
+            {selectedExame?.description}
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Duração: {selectedConsulta?.duration_minutes} minutos
+            Duração: {selectedExame?.duration_minutes} minutos
           </Typography>
-          {selectedConsulta?.specialty && (
+          {selectedExame?.specialty && (
             <Typography variant="body2" color="primary" gutterBottom>
-              Especialidade: {selectedConsulta.specialty}
+              Especialidade: {selectedExame.specialty}
             </Typography>
           )}
           
@@ -246,7 +243,7 @@ export default function ConsultasPage() {
             value={selectedMedico?.doctor_name || ""}
             onChange={handleMedicoChange}
           >
-            {selectedConsulta?.doctors_available?.map((medico) => (
+            {selectedExame?.doctors_available?.map((medico) => (
               <FormControlLabel
                 key={medico.doctor_id}
                 value={medico.doctor_name}
@@ -287,7 +284,7 @@ export default function ConsultasPage() {
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Adicione observações sobre sua consulta..."
+              placeholder="Adicione observações sobre seu exame..."
               sx={{ mt: 2 }}
             />
           )}
@@ -317,7 +314,7 @@ export default function ConsultasPage() {
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity="success" sx={{ width: "100%" }}>
-          Consulta agendada com sucesso!
+          Exame agendado com sucesso!
         </Alert>
       </Snackbar>
 
