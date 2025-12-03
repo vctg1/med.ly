@@ -217,10 +217,10 @@ export default function Login() {
                                         <strong>Dados para demonstração:</strong>
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
-                                        Paciente: paciente@gmail.com / 123456
+                                        Paciente: paciente@gmail.com / 123123
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
-                                        Profissional: medico@gmail.com / 123456
+                                        Profissional: dra.renata.lopes@medlydoctors.com / 123456
                                     </Typography>
                                 </Box>
                             </FormControl>
